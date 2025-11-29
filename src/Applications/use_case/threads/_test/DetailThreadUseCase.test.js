@@ -64,7 +64,7 @@ describe('DetailThreadUseCase', () => {
           username: 'user123',
           date: '2023-11-07T05:50:15.640Z',
           content: '**komentar telah dihapus**',
-          likeCount: 5,
+          likeCount: 2,
           replies: [
             {
               id: 'reply-123',
@@ -103,7 +103,7 @@ describe('DetailThreadUseCase', () => {
     mockReplyRepository.getRepliesByThreadId = jest.fn().mockResolvedValue(mockReplies);
 
     mockLikeRepository.getLikeCountComment = jest.fn().mockImplementation((commentId) => {
-      if (commentId === 'comment-123') return Promise.resolve(5);
+      if (commentId === 'comment-123') return Promise.resolve(2);
       if (commentId === 'comment-456') return Promise.resolve(2);
       return Promise.resolve(0);
     });

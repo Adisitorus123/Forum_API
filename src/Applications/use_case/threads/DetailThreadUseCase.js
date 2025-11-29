@@ -26,7 +26,7 @@ class DetailThreadUseCase {
   async _formatCommentsWithLikeCount(comments) {
     return Promise.all(
       comments.map(async (comment) => {
-        const likeCount = await this._likeRepository.getLikeCountComment(comment.id);
+        const likeCount = await this._likeRepository.getLikeCountComment({ commentId: comment.id }); 
         return {
           id: comment.id,
           username: comment.username,
