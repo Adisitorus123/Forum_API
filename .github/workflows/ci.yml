@@ -1,51 +1,37 @@
-name: CI Pipeline
+name: Continuous Integration
 
 on:
   pull_request:
     branches:
-      - main
       - master
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: ${{ secrets.PGUSER_TEST }}
-          POSTGRES_PASSWORD: ${{ secrets.PGPASSWORD_TEST }}
-          POSTGRES_DB: ${{ secrets.PGDATABASE_TEST }}
-        ports:
-          - 5432:5432
-
-    env:
-      PGHOST: ${{ secrets.PGHOST_TEST }}
-      PGUSER: ${{ secrets.PGUSER_TEST }}
-      PGDATABASE: ${{ secrets.PGDATABASE_TEST }}
-      PGPASSWORD: ${{ secrets.PGPASSWORD_TEST }}
-      PGPORT: ${{ secrets.PGPORT_TEST }}
-      ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }}
-      REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}
+    strategy:
+      matrix:
+        node-version: [18.x]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run Unit Tests
-        run: npm run test:unit
-
-      - name: Run Integration Tests
-        run: npm run test:integration
-
-      - name: Run Functional Tests
-        run: npm run test:functional
+    - name: npm install migrate and test
+      run: |
+        npm install
+        npm run migrate up
+        npm run test
+      env:
+        CI: true
+        PGHOST: ${{ secrets.UP_CLOUD_DB_HOST }}
+        PGUSER: ${{ secrets.UP_CLOUD_DB_USER }}
+        PGDATABASE: ${{ secrets.UP_CLOUD_DB_NAME }}
+        PGPASSWORD: ${{ secrets.UP_CLOUD_DB_PASS }}
+        PGPORT: ${{ secrets.UP_CLOUD_DB_PORT }}
+        ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }}
+        REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}

@@ -102,11 +102,12 @@ describe('DetailThreadUseCase', () => {
     mockCommentRepository.getCommentsByThreadId = jest.fn().mockResolvedValue(mockComments);
     mockReplyRepository.getRepliesByThreadId = jest.fn().mockResolvedValue(mockReplies);
 
-    mockLikeRepository.getLikeCountComment = jest.fn().mockImplementation((commentId) => {
+    mockLikeRepository.getLikeCountComment = jest.fn().mockImplementation(({ commentId }) => {
       if (commentId === 'comment-123') return Promise.resolve(2);
       if (commentId === 'comment-456') return Promise.resolve(2);
       return Promise.resolve(0);
     });
+
 
     // Create use case instance
     const detailThreadUseCase = new DetailThreadUseCase({
@@ -125,7 +126,7 @@ describe('DetailThreadUseCase', () => {
     expect(mockCommentRepository.getCommentsByThreadId).toBeCalledWith(threadId);
     expect(mockReplyRepository.getRepliesByThreadId).toBeCalledWith(threadId);
     expect(mockLikeRepository.getLikeCountComment).toBeCalledTimes(2);
-    expect(mockLikeRepository.getLikeCountComment).toBeCalledWith('comment-123');
-    expect(mockLikeRepository.getLikeCountComment).toBeCalledWith('comment-456');
+    expect(mockLikeRepository.getLikeCountComment).toBeCalledWith({ commentId: 'comment-123' });
+    expect(mockLikeRepository.getLikeCountComment).toBeCalledWith({ commentId: 'comment-456' });
   });
 });
