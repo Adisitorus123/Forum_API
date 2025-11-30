@@ -1,41 +1,51 @@
-name: Continuous Integration
- 
-on: 
+name: CI Pipeline
+
+on:
   pull_request:
     branches:
+      - main
       - master
- 
+
 jobs:
   test:
     runs-on: ubuntu-latest
- 
-    strategy:
-      matrix:
-        node-version: '18'
- 
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ${{ secrets.PGUSER_TEST }}
+          POSTGRES_PASSWORD: ${{ secrets.PGPASSWORD_TEST }}
+          POSTGRES_DB: ${{ secrets.PGDATABASE_TEST }}
+        ports:
+          - 5432:5432
+
+    env:
+      PGHOST: ${{ secrets.PGHOST_TEST }}
+      PGUSER: ${{ secrets.PGUSER_TEST }}
+      PGDATABASE: ${{ secrets.PGDATABASE_TEST }}
+      PGPASSWORD: ${{ secrets.PGPASSWORD_TEST }}
+      PGPORT: ${{ secrets.PGPORT_TEST }}
+      ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }}
+      REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install migrate and test
-      run: |
-        npm install
-        npm run migrate up
-        npm run test
-      env:
-        CI: true
-        PGHOST_TEST: ${{ secrets.PGHOST }}
-        PGUSER_TEST: ${{ secrets.PGUSER }}
-        PGDATABASE_TEST: ${{ secrets.PGDATABASE_TEST }}
-        PGPASSWORD_TEST: ${{ secrets.PGPASSWORD }}
-        PGPORT_TEST: ${{ secrets.PGPORT }}
-        PGHOST: ${{ secrets.PGHOST }}
-        PGUSER: ${{ secrets.PGUSER }}
-        PGDATABASE: ${{ secrets.PGDATABASE }}
-        PGPASSWORD: ${{ secrets.PGPASSWORD }}
-        PGPORT: ${{ secrets.PGPORT }}
-        ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }}
-        REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}
-        ACCCESS_TOKEN_AGE: ${{ secrets.ACCCESS_TOKEN_AGE }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+
+      - name: Run Functional Tests
+        run: npm run test:functional
